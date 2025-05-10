@@ -57,6 +57,7 @@ object UseCases {
         ServiceLocator.accessibilityServiceAdapter(ctx),
         ServiceLocator.settingsRepository(ctx),
         ServiceLocator.purchasingManager(ctx),
+        ServiceLocator.ringtoneAdapter(ctx),
         getActionError(ctx),
         getConstraintError(ctx),
     )
@@ -71,6 +72,7 @@ object UseCases {
         ServiceLocator.cameraAdapter(ctx),
         ServiceLocator.soundsManager(ctx),
         ServiceLocator.shizukuAdapter(ctx),
+        ServiceLocator.ringtoneAdapter(ctx),
     )
 
     fun getConstraintError(ctx: Context) = GetConstraintErrorUseCaseImpl(
@@ -100,6 +102,7 @@ object UseCases {
     fun pauseKeyMaps(ctx: Context) = PauseKeyMapsUseCaseImpl(
         ServiceLocator.settingsRepository(ctx),
         ServiceLocator.mediaAdapter(ctx),
+        ServiceLocator.ringtoneAdapter(ctx),
     )
 
     fun showImePicker(ctx: Context): ShowInputMethodPickerUseCase = ShowInputMethodPickerUseCaseImpl(
@@ -142,7 +145,7 @@ object UseCases {
         ServiceLocator.intentAdapter(ctx),
         getActionError(ctx),
         keyMapperImeMessenger(ctx, keyEventRelayService),
-        ShizukuInputEventInjector(coroutineScope = ServiceLocator.appCoroutineScope(ctx)),
+        ShizukuInputEventInjector(),
         ServiceLocator.packageManagerAdapter(ctx),
         ServiceLocator.appShortcutAdapter(ctx),
         ServiceLocator.popupMessageAdapter(ctx),
@@ -163,6 +166,7 @@ object UseCases {
         ServiceLocator.soundsManager(ctx),
         ServiceLocator.permissionAdapter(ctx),
         ServiceLocator.notificationReceiverAdapter(ctx),
+        ServiceLocator.ringtoneAdapter(ctx),
     )
 
     fun detectKeyMaps(
@@ -179,7 +183,7 @@ object UseCases {
         ServiceLocator.audioAdapter(ctx),
         keyMapperImeMessenger(ctx, keyEventRelayService),
         service,
-        ShizukuInputEventInjector(ServiceLocator.appCoroutineScope(ctx)),
+        ShizukuInputEventInjector(),
         ServiceLocator.popupMessageAdapter(ctx),
         ServiceLocator.permissionAdapter(ctx),
         ServiceLocator.resourceProvider(ctx),
