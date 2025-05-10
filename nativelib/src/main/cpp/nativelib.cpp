@@ -1,33 +1,33 @@
 #include <jni.h>
-#include <string>
 #include <asm-generic/fcntl.h>
 #include <fcntl.h>
 #include <android/log.h>
 #include "libevdev/libevdev.h"
 
+#define LOG_TAG "KeyMapperNative"
+
+#include "logging.h"
+
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_io_github_sds100_keymapper_nativelib_EvdevService_stringFromJNI(JNIEnv *env,
                                                                      jobject /* this */) {
-    std::string hello = "Hello from C++";
-
+    char *input_file_path = "/dev/input/event3";
     struct libevdev *dev = NULL;
     int fd;
     int rc = 1;
 
-    std::string input_file_path = "/dev/input/event3";
-    fd = open(input_file_path.c_str(), O_RDONLY);
+    fd = open(input_file_path, O_RDONLY);
 
     if (fd == -1) {
-        __android_log_print(ANDROID_LOG_ERROR, "Key Mapper", "Failed to open input file (%s)",
-                            input_file_path.c_str());
+        LOGE("Failed to open input file (%s)",
+             input_file_path);
         return env->NewStringUTF("Failed");
     }
 
     rc = libevdev_new_from_fd(fd, &dev);
     if (rc < 0) {
-        __android_log_print(ANDROID_LOG_ERROR, "Key Mapper", "Failed to init libevdev (%s)",
-                            strerror(-rc));
+        LOGE("Failed to init libevdev");
         return env->NewStringUTF("Failed to init");
     }
 
@@ -56,5 +56,5 @@ Java_io_github_sds100_keymapper_nativelib_EvdevService_stringFromJNI(JNIEnv *env
                                 ev.value);
     } while (rc == 1 || rc == 0 || rc == -EAGAIN);
 
-    return env->NewStringUTF(hello.c_str());
+    return env->NewStringUTF("Hello!");
 }
