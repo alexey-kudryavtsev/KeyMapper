@@ -3,7 +3,7 @@ package moe.shizuku.manager.adb
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.android.org.conscrypt.Conscrypt
+import org.conscrypt.Conscrypt
 import java.io.Closeable
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -26,8 +26,9 @@ private const val kExportedKeySize = 64
 private const val kPairingPacketHeaderSize = 6
 
 private class PeerInfo(
-        val type: Byte,
-        data: ByteArray) {
+    val type: Byte,
+    data: ByteArray,
+) {
 
     val data = ByteArray(kMaxPeerInfoSize - 1)
 
@@ -69,13 +70,14 @@ private class PeerInfo(
 }
 
 private class PairingPacketHeader(
-        val version: Byte,
-        val type: Byte,
-        val payload: Int) {
+    val version: Byte,
+    val type: Byte,
+    val payload: Int,
+) {
 
     enum class Type(val value: Byte) {
         SPAKE2_MSG(0.toByte()),
-        PEER_INFO(1.toByte())
+        PEER_INFO(1.toByte()),
     }
 
     fun writeTo(buffer: ByteBuffer) {
@@ -104,15 +106,18 @@ private class PairingPacketHeader(
             val payload = buffer.int
 
             if (version < kMinSupportedKeyHeaderVersion || version > kMaxSupportedKeyHeaderVersion) {
-                Log.e(TAG, "PairingPacketHeader version mismatch (us=$kCurrentKeyHeaderVersion them=${version})")
+                Log.e(
+                    TAG,
+                    "PairingPacketHeader version mismatch (us=$kCurrentKeyHeaderVersion them=$version)",
+                )
                 return null
             }
             if (type != Type.SPAKE2_MSG.value && type != Type.PEER_INFO.value) {
-                Log.e(TAG, "Unknown PairingPacket type=${type}")
+                Log.e(TAG, "Unknown PairingPacket type=$type")
                 return null
             }
             if (payload <= 0 || payload > kMaxPayloadSize) {
-                Log.e(TAG, "header payload not within a safe payload size (size=${payload})")
+                Log.e(TAG, "header payload not within a safe payload size (size=$payload)")
                 return null
             }
 
@@ -162,13 +167,18 @@ private class PairingContext private constructor(private val nativePtr: Long) {
 }
 
 @RequiresApi(Build.VERSION_CODES.R)
-class AdbPairingClient(private val host: String, private val port: Int, private val pairCode: String, private val key: AdbKey) : Closeable {
+class AdbPairingClient(
+    private val host: String,
+    private val port: Int,
+    private val pairCode: String,
+    private val key: AdbKey,
+) : Closeable {
 
     private enum class State {
         Ready,
         ExchangingMsgs,
         ExchangingPeerInfo,
-        Stopped
+        Stopped,
     }
 
     private lateinit var socket: Socket
@@ -205,6 +215,7 @@ class AdbPairingClient(private val host: String, private val port: Int, private 
         socket.tcpNoDelay = true
 
         val sslContext = key.sslContext
+
         val sslSocket = sslContext.socketFactory.createSocket(socket, host, port, true) as SSLSocket
         sslSocket.startHandshake()
         Log.d(TAG, "Handshake succeeded.")
@@ -223,7 +234,10 @@ class AdbPairingClient(private val host: String, private val port: Int, private 
         this.pairingContext = pairingContext
     }
 
-    private fun createHeader(type: PairingPacketHeader.Type, payloadSize: Int): PairingPacketHeader {
+    private fun createHeader(
+        type: PairingPacketHeader.Type,
+        payloadSize: Int,
+    ): PairingPacketHeader {
         return PairingPacketHeader(kCurrentKeyHeaderVersion, type.value, payloadSize)
     }
 
@@ -275,7 +289,8 @@ class AdbPairingClient(private val host: String, private val port: Int, private 
         val theirMessage = ByteArray(theirHeader.payload)
         inputStream.readFully(theirMessage)
 
-        val decrypted = pairingContext.decrypt(theirMessage) ?: throw AdbInvalidPairingCodeException()
+        val decrypted =
+            pairingContext.decrypt(theirMessage) ?: throw AdbInvalidPairingCodeException()
         if (decrypted.size != kMaxPeerInfoSize) {
             Log.e(TAG, "Got size=${decrypted.size} PeerInfo.size=$kMaxPeerInfoSize")
             return false

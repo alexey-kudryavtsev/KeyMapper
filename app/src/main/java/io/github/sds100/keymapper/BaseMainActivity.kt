@@ -1,17 +1,26 @@
 package io.github.sds100.keymapper
 
+import android.app.AppOpsManager
+import android.app.ForegroundServiceStartNotAllowedException
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
 import android.view.MotionEvent
+import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
@@ -23,6 +32,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withStateAtLeast
 import androidx.navigation.findNavController
+import androidx.preference.PreferenceManager
 import com.anggrayudi.storage.extension.openInputStream
 import com.anggrayudi.storage.extension.openOutputStream
 import com.anggrayudi.storage.extension.toDocumentFile
@@ -30,6 +40,8 @@ import io.github.sds100.keymapper.Constants.PACKAGE_NAME
 import io.github.sds100.keymapper.compose.ComposeColors
 import io.github.sds100.keymapper.databinding.ActivityMainBinding
 import io.github.sds100.keymapper.mappings.keymaps.trigger.RecordTriggerController
+import io.github.sds100.keymapper.nativelib.IEvdevService
+import io.github.sds100.keymapper.nativelib.adb.AdbPairingService
 import io.github.sds100.keymapper.system.accessibility.AccessibilityServiceAdapter
 import io.github.sds100.keymapper.system.files.FileUtils
 import io.github.sds100.keymapper.system.inputevents.MyMotionEvent
@@ -38,9 +50,15 @@ import io.github.sds100.keymapper.system.permissions.RequestPermissionDelegate
 import io.github.sds100.keymapper.util.launchRepeatOnLifecycle
 import io.github.sds100.keymapper.util.ui.showPopups
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import moe.shizuku.manager.adb.AdbClient
+import moe.shizuku.manager.adb.AdbKey
+import moe.shizuku.manager.adb.AdbKeyException
+import moe.shizuku.manager.adb.PreferenceAdbKeyStore
+import moe.shizuku.manager.starter.Starter
 import timber.log.Timber
 
 /**
@@ -109,6 +127,19 @@ abstract class BaseMainActivity : AppCompatActivity() {
         }
     }
 
+    private val evdevServiceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(componentName: ComponentName, binder: IBinder) {
+            val service = IEvdevService.Stub.asInterface(binder)
+
+            lifecycleScope.launch(Dispatchers.Default) {
+                Timber.e("RECEIVED FROM EVDEV ${service.sendEvent()}")
+            }
+        }
+
+        override fun onServiceDisconnected(componentName: ComponentName) {
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge(
@@ -169,6 +200,35 @@ abstract class BaseMainActivity : AppCompatActivity() {
                 ContextCompat.RECEIVER_EXPORTED,
             )
         }
+
+        // See demo.DemoActivity in the Shizuku-API repository.
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            startPairingService()
+//            startAdb("127.0.0.1", 41849)
+        }
+
+//        val userServiceArgs =
+//            UserServiceArgs(
+//                ComponentName(
+//                    BuildConfig.APPLICATION_ID,
+//                    EvdevService::class.java.getName(),
+//                ),
+//            )
+//                .daemon(false)
+//                .processNameSuffix("service")
+//                .debuggable(BuildConfig.DEBUG)
+//                .version(BuildConfig.VERSION_CODE)
+//
+//        try {
+//            if (Shizuku.getVersion() < 10) {
+//                Timber.e("requires Shizuku API 10")
+//            } else {
+//                Shizuku.bindUserService(userServiceArgs, evdevServiceConnection)
+//            }
+//        } catch (tr: Throwable) {
+//            tr.printStackTrace()
+//        }
     }
 
     override fun onResume() {
@@ -224,5 +284,109 @@ abstract class BaseMainActivity : AppCompatActivity() {
 
         originalFileUri = fileUri
         saveFileLauncher.launch(fileName)
+    }
+
+    private val sb = StringBuilder()
+
+    fun postResult(throwable: Throwable? = null) {
+        if (throwable == null) {
+            Timber.e(sb.toString())
+        } else {
+            Timber.e(throwable)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun startPairingService() {
+        val intent = AdbPairingService.startIntent(this)
+        try {
+            startForegroundService(intent)
+        } catch (e: Throwable) {
+            Timber.e("startForegroundService", e)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                e is ForegroundServiceStartNotAllowedException
+            ) {
+                val mode = getSystemService(AppOpsManager::class.java)
+                    .noteOpNoThrow(
+                        "android:start_foreground",
+                        android.os.Process.myUid(),
+                        packageName,
+                        null,
+                        null,
+                    )
+                if (mode == AppOpsManager.MODE_ERRORED) {
+                    Toast.makeText(
+                        this,
+                        "OP_START_FOREGROUND is denied. What are you doing?",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+                startService(intent)
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun startAdb(host: String, port: Int) {
+        sb.append("Starting with wireless adb...").append('\n').append('\n')
+        postResult()
+
+        GlobalScope.launch(Dispatchers.IO) {
+            val key = try {
+                AdbKey(
+                    PreferenceAdbKeyStore(PreferenceManager.getDefaultSharedPreferences(this@BaseMainActivity)),
+                    "shizuku",
+                )
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                sb.append('\n').append(Log.getStackTraceString(e))
+
+                postResult(AdbKeyException(e))
+                return@launch
+            }
+
+            AdbClient(host, port, key).runCatching {
+                connect()
+                shellCommand(Starter.sdcardCommand) {
+                    sb.append(String(it))
+                    postResult()
+                }
+                close()
+            }.onFailure {
+                it.printStackTrace()
+
+                sb.append('\n').append(Log.getStackTraceString(it))
+                postResult(it)
+            }
+
+            /* Adb on MIUI Android 11 has no permission to access Android/data.
+               Before MIUI Android 12, we can temporarily use /data/user_de.
+               After that, is better to implement "adb push" and push files directly to /data/local/tmp.
+             */
+            if (sb.contains("/Android/data/${BuildConfig.APPLICATION_ID}/start.sh: Permission denied")) {
+                sb.append('\n')
+                    .appendLine("adb have no permission to access Android/data, how could this possible ?!")
+                    .appendLine("try /data/user_de instead...")
+                    .appendLine()
+                postResult()
+
+                Starter.writeDataFiles(application, true)
+
+                AdbClient(host, port, key).runCatching {
+                    connect()
+                    shellCommand(Starter.dataCommand) {
+                        sb.append(String(it))
+                        postResult()
+                    }
+                    close()
+                }.onFailure {
+                    it.printStackTrace()
+
+                    sb.append('\n').append(Log.getStackTraceString(it))
+                    postResult(it)
+                }
+            }
+        }
     }
 }

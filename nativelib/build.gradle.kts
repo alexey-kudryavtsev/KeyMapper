@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+//    id("dev.rikka.tools.refine")
 }
 
 android {
@@ -15,8 +16,9 @@ android {
 
         externalNativeBuild {
             cmake {
-                // This is required by Rikka's library: https://github.com/RikkaW/libcxx-prefab
-                arguments("-DANDROID_STL=none")
+                // -DANDROID_STL=none is required by Rikka's library: https://github.com/RikkaW/libcxx-prefab
+                // -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON is required to get the app running on the Android 15 emulator. This is related to the new 16kB page size support.
+                arguments("-DANDROID_STL=none", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
             }
         }
     }
@@ -59,6 +61,8 @@ android {
 }
 
 dependencies {
+//    compileOnly(project(":systemstubs"))
+    implementation("org.conscrypt:conscrypt-android:2.5.2")
     implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
@@ -70,11 +74,12 @@ dependencies {
     implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
     implementation("me.zhanghai.android.appiconloader:appiconloader:1.5.0")
     implementation("dev.rikka.rikkax.core:core-ktx:1.4.1")
-    implementation("dev.rikka.hidden:compat:4.3.3")
-    compileOnly("dev.rikka.hidden:stub:4.3.3")
-
-//    annotationProcessor("dev.rikka.tools.refine:annotation-processor:4.4.0")
-//    compileOnly("dev.rikka.tools.refine:annotation:4.4.0")
+//    implementation("dev.rikka.hidden:compat:4.3.3")
+//    compileOnly("dev.rikka.hidden:stub:4.3.3")
+//
+//    implementation("dev.rikka.tools.refine:runtime:4.3.0")
+//    annotationProcessor("dev.rikka.tools.refine:annotation-processor:4.3.0")
+//    compileOnly("dev.rikka.tools.refine:annotation:4.3.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
