@@ -30,9 +30,9 @@
 #define EXIT_FATAL_KILL 9
 #define EXIT_FATAL_BINDER_BLOCKED_BY_SELINUX 10
 
-#define PACKAGE_NAME "moe.shizuku.privileged.api"
+#define PACKAGE_NAME "io.github.sds100.keymapper.debug"
 #define SERVER_NAME "shizuku_server"
-#define SERVER_CLASS_PATH "rikka.shizuku.server.ShizukuService"
+#define SERVER_CLASS_PATH "io.github.sds100.keymapper.nativelib.EvdevService"
 
 #if defined(__arm__)
 #define ABI "armeabi-v7a"
@@ -44,8 +44,9 @@
 #define ABI "arm64-v8a"
 #endif
 
-static void run_server(const char *dex_path, const char *main_class, const char *process_name) {
-    if (setenv("CLASSPATH", dex_path, true)) {
+static void run_server(const char *apk_path, const char *lib_path, const char *main_class,
+                       const char *process_name) {
+    if (setenv("CLASSPATH", apk_path, true)) {
         LOGE("can't set CLASSPATH\n");
         exit(EXIT_FATAL_SET_CLASSPATH);
     }
@@ -91,12 +92,9 @@ v_current = (uintptr_t) v + v_size - sizeof(char *); \
 #define ARG_PUSH_DEBUG_ONLY(v, arg)
 #endif
 
-    char lib_path[PATH_MAX]{0};
-    snprintf(lib_path, PATH_MAX, "%s!/lib/%s", dex_path, ABI);
-
     ARG(argv)
     ARG_PUSH(argv, "/system/bin/app_process")
-    ARG_PUSH_FMT(argv, "-Djava.class.path=%s", dex_path)
+    ARG_PUSH_FMT(argv, "-Djava.class.path=%s", apk_path)
     ARG_PUSH_FMT(argv, "-Dshizuku.library.path=%s", lib_path)
     ARG_PUSH_DEBUG_VM_PARAMS(argv)
     ARG_PUSH(argv, "/system/bin")
@@ -112,10 +110,12 @@ v_current = (uintptr_t) v + v_size - sizeof(char *); \
     }
 }
 
-static void start_server(const char *path, const char *main_class, const char *process_name) {
+static void start_server(const char *apk_path, const char *lib_path, const char *main_class,
+                         const char *process_name) {
+
     if (daemon(false, false) == 0) {
         LOGD("child");
-        run_server(path, main_class, process_name);
+        run_server(apk_path, lib_path, main_class, process_name);
     } else {
         perrorf("fatal: can't fork\n");
         exit(EXIT_FATAL_FORK);
@@ -169,11 +169,19 @@ char *context = nullptr;
 
 int starter_main(int argc, char *argv[]) {
     char *apk_path = nullptr;
+    char *lib_path = nullptr;
+
+    // Get the apk path from the program arguments. This gets the path by setting the
+    // start of the apk path array to after the "--apk=" by offsetting by 6 characters.
     for (int i = 0; i < argc; ++i) {
         if (strncmp(argv[i], "--apk=", 6) == 0) {
             apk_path = argv[i] + 6;
+        } else if (strncmp(argv[i], "--lib=", 6) == 0) {
+            lib_path = argv[i] + 6;
         }
     }
+
+    printf("info: apk path = %s\n", apk_path);
 
     int uid = getuid();
     if (uid != 0 && uid != 2000) {
@@ -242,7 +250,8 @@ int starter_main(int argc, char *argv[]) {
         if (kill(pid, SIGKILL) == 0)
             printf("info: killed %d (%s)\n", pid, name);
         else if (errno == EPERM) {
-            perrorf("fatal: can't kill %d, please try to stop existing Shizuku from app first.\n", pid);
+            perrorf("fatal: can't kill %d, please try to stop existing Shizuku from app first.\n",
+                    pid);
             exit(EXIT_FATAL_KILL);
         } else {
             printf("warn: failed to kill %d (%s)\n", pid, name);
@@ -251,6 +260,11 @@ int starter_main(int argc, char *argv[]) {
 
     if (access(apk_path, R_OK) == 0) {
         printf("info: use apk path from argv\n");
+        fflush(stdout);
+    }
+
+    if (access(lib_path, R_OK) == 0) {
+        printf("info: use lib path from argv\n");
         fflush(stdout);
     }
 
@@ -272,7 +286,13 @@ int starter_main(int argc, char *argv[]) {
         exit(EXIT_FATAL_PM_PATH);
     }
 
+    if (!lib_path) {
+        perrorf("fatal: can't get path of native libraries\n");
+        exit(EXIT_FATAL_PM_PATH);
+    }
+
     printf("info: apk path is %s\n", apk_path);
+    printf("info: lib path is %s\n", lib_path);
     if (access(apk_path, R_OK) != 0) {
         perrorf("fatal: can't access manager %s\n", apk_path);
         exit(EXIT_FATAL_PM_PATH);
@@ -281,7 +301,7 @@ int starter_main(int argc, char *argv[]) {
     printf("info: starting server...\n");
     fflush(stdout);
     LOGD("start_server");
-    start_server(apk_path, SERVER_CLASS_PATH, SERVER_NAME);
+    start_server(apk_path, lib_path, SERVER_CLASS_PATH, SERVER_NAME);
     exit(EXIT_SUCCESS);
 }
 

@@ -1,5 +1,6 @@
 package io.github.sds100.keymapper.nativelib
 
+import android.ddm.DdmHandleAppName
 import android.system.Os
 import android.util.Log
 import kotlin.system.exitProcess
@@ -17,13 +18,20 @@ class EvdevService : IEvdevService.Stub() {
     external fun stringFromJNI(): String
 
     companion object {
-        // Used to load the 'nativelib' library on application startup.
-        init {
-            System.loadLibrary("nativelib")
+        private const val TAG: String = "EvdevService"
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+            DdmHandleAppName.setAppName("keymapper_evdev", 0)
+            EvdevService()
         }
     }
 
-    private val TAG: String = "EvdevService"
+    init {
+        Log.e(TAG, "SYSTEM PROPERTY ${System.getProperty("shizuku.library.path")}")
+        System.load("${System.getProperty("shizuku.library.path")}/libnativelib.so")
+        stringFromJNI()
+    }
 
     override fun destroy() {
         Log.i(TAG, "destroy")

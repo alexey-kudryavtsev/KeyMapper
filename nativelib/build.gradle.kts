@@ -17,7 +17,7 @@ android {
         externalNativeBuild {
             cmake {
                 // -DANDROID_STL=none is required by Rikka's library: https://github.com/RikkaW/libcxx-prefab
-                // -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON is required to get the app running on the Android 15 emulator. This is related to the new 16kB page size support.
+                // -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON is required to get the app running on the Android 15. This is related to the new 16kB page size support.
                 arguments("-DANDROID_STL=none", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
             }
         }
@@ -48,8 +48,12 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = false
+
+            // This is required on Android 15. Otherwise a java.lang.UnsatisfiedLinkError: dlopen failed: empty/missing DT_HASH/DT_GNU_HASH error is thrown.
+            keepDebugSymbols.add("**/*.so")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -61,8 +65,8 @@ android {
 }
 
 dependencies {
-//    compileOnly(project(":systemstubs"))
-    implementation("org.conscrypt:conscrypt-android:2.5.2")
+    compileOnly(project(":systemstubs"))
+    implementation("org.conscrypt:conscrypt-android:2.5.3")
     implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")

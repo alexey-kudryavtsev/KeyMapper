@@ -5,16 +5,8 @@ import android.os.Build
 import android.os.UserManager
 import android.system.ErrnoException
 import android.system.Os
-import android.util.Log
 import androidx.annotation.RequiresApi
 import io.github.sds100.keymapper.nativelib.R
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import moe.shizuku.manager.adb.AdbClient
-import moe.shizuku.manager.adb.AdbKey
-import moe.shizuku.manager.adb.AdbKeyException
-import moe.shizuku.manager.adb.PreferenceAdbKeyStore
 import moe.shizuku.manager.ktx.createDeviceProtectedStorageContextCompat
 import moe.shizuku.manager.ktx.logd
 import moe.shizuku.manager.ktx.loge
@@ -59,7 +51,10 @@ object Starter {
         val dir = filesDir.parentFile ?: throw IOException("$filesDir parentFile returns null")
         val starter = copyStarter(context, File(dir, "starter"))
         val sh = writeScript(context, File(dir, "start.sh"), starter)
-        commandInternal[1] = "sh $sh"
+        val apkPath = context.applicationInfo.sourceDir
+        val libPath = context.applicationInfo.nativeLibraryDir
+
+        commandInternal[1] = "sh $sh --apk=$apkPath --lib=$libPath"
         logd(commandInternal[1]!!)
     }
 
@@ -82,7 +77,11 @@ object Starter {
         try {
             val starter = copyStarter(context, File(dir, "starter"))
             val sh = writeScript(context, File(dir, "start.sh"), starter)
-            commandInternal[0] = "sh $sh --apk=${context.applicationInfo.sourceDir}"
+
+            val apkPath = context.applicationInfo.sourceDir
+            val libPath = context.applicationInfo.nativeLibraryDir
+
+            commandInternal[0] = "sh $sh --apk=$apkPath --lib=$libPath"
             logd(commandInternal[0]!!)
 
             if (permission) {

@@ -12,7 +12,7 @@ extern "C"
 JNIEXPORT jstring JNICALL
 Java_io_github_sds100_keymapper_nativelib_EvdevService_stringFromJNI(JNIEnv *env,
                                                                      jobject /* this */) {
-    char *input_file_path = "/dev/input/event3";
+    char *input_file_path = "/dev/input/event12";
     struct libevdev *dev = NULL;
     int fd;
     int rc = 1;

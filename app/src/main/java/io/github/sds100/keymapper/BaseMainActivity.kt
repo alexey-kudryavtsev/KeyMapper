@@ -9,12 +9,14 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.res.Configuration
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import android.view.MotionEvent
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -36,6 +38,7 @@ import androidx.preference.PreferenceManager
 import com.anggrayudi.storage.extension.openInputStream
 import com.anggrayudi.storage.extension.openOutputStream
 import com.anggrayudi.storage.extension.toDocumentFile
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.sds100.keymapper.Constants.PACKAGE_NAME
 import io.github.sds100.keymapper.compose.ComposeColors
 import io.github.sds100.keymapper.databinding.ActivityMainBinding
@@ -54,6 +57,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import moe.shizuku.manager.adb.AdbClient
 import moe.shizuku.manager.adb.AdbKey
 import moe.shizuku.manager.adb.AdbKeyException
@@ -204,8 +208,8 @@ abstract class BaseMainActivity : AppCompatActivity() {
         // See demo.DemoActivity in the Shizuku-API repository.
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            startPairingService()
-//            startAdb("127.0.0.1", 41849)
+//            startPairingService()
+            startAdb("127.0.0.1", 35051)
         }
 
 //        val userServiceArgs =
@@ -328,7 +332,35 @@ abstract class BaseMainActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
+    private fun writeStarterFiles() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                Starter.writeSdcardFiles(applicationContext)
+            } catch (e: Throwable) {
+                withContext(Dispatchers.Main) {
+                    MaterialAlertDialogBuilder(this@BaseMainActivity)
+                        .setTitle("Cannot write files")
+                        .setMessage(Log.getStackTraceString(e))
+                        .setPositiveButton(android.R.string.ok, null)
+                        .create()
+                        .apply {
+                            setOnShowListener {
+                                this.findViewById<TextView>(android.R.id.message)!!.apply {
+                                    typeface = Typeface.MONOSPACE
+                                    setTextIsSelectable(true)
+                                }
+                            }
+                        }
+                        .show()
+                }
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun startAdb(host: String, port: Int) {
+        writeStarterFiles()
+
         sb.append("Starting with wireless adb...").append('\n').append('\n')
         postResult()
 

@@ -39,7 +39,7 @@ fi
 
 if [ -f $STARTER_PATH ]; then
   echo "info: exec $STARTER_PATH"
-    $STARTER_PATH "$1"
+    $STARTER_PATH "$1" "$2"
     result=$?
     if [ ${result} -ne 0 ]; then
         echo "info: shizuku_starter exit with non-zero value $result"
