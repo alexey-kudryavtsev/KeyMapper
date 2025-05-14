@@ -14,6 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.provider.Settings
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.TextView
@@ -27,6 +28,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
+import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Lifecycle
@@ -205,11 +207,41 @@ abstract class BaseMainActivity : AppCompatActivity() {
             )
         }
 
+        // Go to build number.
+//        Intent(Settings.ACTION_DEVICE_INFO_SETTINGS).apply {
+//            val EXTRA_FRAGMENT_ARG_KEY = ":settings:fragment_args_key"
+//            val EXTRA_SHOW_FRAGMENT_ARGUMENTS = ":settings:show_fragment_args"
+//
+//            putExtra(EXTRA_FRAGMENT_ARG_KEY, "build_number")
+//            val bundle = bundleOf(EXTRA_FRAGMENT_ARG_KEY to "build_number")
+//            putExtra(EXTRA_SHOW_FRAGMENT_ARGUMENTS, bundle)
+//
+//            startActivity(this)
+//        }
+
+        // Highlight wireless debugging setting
+        Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS).apply {
+            // See SubSettingLauncher in the Android Settings code for how to
+            // launch a specific fragment.
+            // https://cs.android.com/android/platform/superproject/main/+/main:packages/apps/Settings/src/com/android/settings/core/SubSettingLauncher.java
+//            val EXTRA_SHOW_FRAGMENT = ":settings:show_fragment"
+//            putExtra(EXTRA_SHOW_FRAGMENT, "com.android.settings.development.WirelessDebuggingFragment")
+//            putExtra(":settings:source_metrics", 1831)
+
+            val EXTRA_FRAGMENT_ARG_KEY = ":settings:fragment_args_key"
+            val EXTRA_SHOW_FRAGMENT_ARGUMENTS = ":settings:show_fragment_args"
+
+            putExtra(EXTRA_FRAGMENT_ARG_KEY, "toggle_adb_wireless")
+            val bundle = bundleOf(EXTRA_FRAGMENT_ARG_KEY to "toggle_adb_wireless")
+            putExtra(EXTRA_SHOW_FRAGMENT_ARGUMENTS, bundle)
+            startActivity(this)
+        }
+
         // See demo.DemoActivity in the Shizuku-API repository.
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 //            startPairingService()
-            startAdb("127.0.0.1", 35051)
+//            startAdb("127.0.0.1", 35051)
         }
 
 //        val userServiceArgs =
