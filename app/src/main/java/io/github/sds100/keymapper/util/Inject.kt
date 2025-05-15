@@ -28,6 +28,7 @@ import io.github.sds100.keymapper.keymaps.FingerprintGesturesSupportedUseCaseImp
 import io.github.sds100.keymapper.keymaps.ListKeyMapsUseCaseImpl
 import io.github.sds100.keymapper.logging.DisplayLogUseCaseImpl
 import io.github.sds100.keymapper.logging.LogViewModel
+import io.github.sds100.keymapper.promode.ProModeViewModel
 import io.github.sds100.keymapper.settings.ConfigSettingsUseCaseImpl
 import io.github.sds100.keymapper.settings.SettingsViewModel
 import io.github.sds100.keymapper.sorting.SortKeyMapsUseCaseImpl
@@ -255,6 +256,12 @@ object Inject {
         ctx: Context,
     ): InteractUiElementViewModel.Factory = InteractUiElementViewModel.Factory(
         (ctx.applicationContext as KeyMapperApp).interactUiElementController,
+        resourceProvider = ServiceLocator.resourceProvider(ctx),
+    )
+
+    fun proModeViewModel(
+        ctx: Context,
+    ): ProModeViewModel.Factory = ProModeViewModel.Factory(
         resourceProvider = ServiceLocator.resourceProvider(ctx),
     )
 }

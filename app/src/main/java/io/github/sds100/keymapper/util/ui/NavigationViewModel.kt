@@ -229,6 +229,8 @@ fun NavigationViewModel.setupNavigation(fragment: Fragment) {
                 requestKey = requestKey,
                 action = destination.action?.let { Json.encodeToString(destination.action) },
             )
+
+            NavDestination.ProMode -> NavAppDirections.toProModeFragment()
         }
 
         fragment.findNavController().navigate(direction)

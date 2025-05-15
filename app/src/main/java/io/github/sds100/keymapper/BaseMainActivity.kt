@@ -44,7 +44,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.sds100.keymapper.Constants.PACKAGE_NAME
 import io.github.sds100.keymapper.compose.ComposeColors
 import io.github.sds100.keymapper.databinding.ActivityMainBinding
-import io.github.sds100.keymapper.mappings.keymaps.trigger.RecordTriggerController
 import io.github.sds100.keymapper.nativelib.IEvdevService
 import io.github.sds100.keymapper.nativelib.adb.AdbPairingService
 import io.github.sds100.keymapper.system.accessibility.AccessibilityServiceAdapter
@@ -235,7 +234,7 @@ abstract class BaseMainActivity : AppCompatActivity() {
             putExtra(EXTRA_FRAGMENT_ARG_KEY, "toggle_adb_wireless")
             val bundle = bundleOf(EXTRA_FRAGMENT_ARG_KEY to "toggle_adb_wireless")
             putExtra(EXTRA_SHOW_FRAGMENT_ARGUMENTS, bundle)
-            startActivity(this)
+//            startActivity(this)
         }
 
         // See demo.DemoActivity in the Shizuku-API repository.
