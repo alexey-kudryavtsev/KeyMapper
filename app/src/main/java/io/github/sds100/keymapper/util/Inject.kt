@@ -28,6 +28,7 @@ import io.github.sds100.keymapper.keymaps.FingerprintGesturesSupportedUseCaseImp
 import io.github.sds100.keymapper.keymaps.ListKeyMapsUseCaseImpl
 import io.github.sds100.keymapper.logging.DisplayLogUseCaseImpl
 import io.github.sds100.keymapper.logging.LogViewModel
+import io.github.sds100.keymapper.promode.ProModeSetupUseCaseImpl
 import io.github.sds100.keymapper.promode.ProModeViewModel
 import io.github.sds100.keymapper.settings.ConfigSettingsUseCaseImpl
 import io.github.sds100.keymapper.settings.SettingsViewModel
@@ -263,5 +264,8 @@ object Inject {
         ctx: Context,
     ): ProModeViewModel.Factory = ProModeViewModel.Factory(
         resourceProvider = ServiceLocator.resourceProvider(ctx),
+        useCase = ProModeSetupUseCaseImpl(
+            ServiceLocator.settingsRepository(ctx),
+        ),
     )
 }
