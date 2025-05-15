@@ -21,7 +21,7 @@ import io.github.sds100.keymapper.reroutekeyevents.RerouteKeyEventsUseCaseImpl
 import io.github.sds100.keymapper.shizuku.ShizukuInputEventInjector
 import io.github.sds100.keymapper.sorting.SortKeyMapsUseCase
 import io.github.sds100.keymapper.sorting.SortKeyMapsUseCaseImpl
-import io.github.sds100.keymapper.system.Shell
+import io.github.sds100.keymapper.system.SimpleShell
 import io.github.sds100.keymapper.system.accessibility.ControlAccessibilityServiceUseCase
 import io.github.sds100.keymapper.system.accessibility.ControlAccessibilityServiceUseCaseImpl
 import io.github.sds100.keymapper.system.accessibility.IAccessibilityService
@@ -143,7 +143,7 @@ object UseCases {
         ServiceLocator.inputMethodAdapter(ctx),
         ServiceLocator.fileAdapter(ctx),
         ServiceLocator.suAdapter(ctx),
-        Shell,
+        SimpleShell,
         ServiceLocator.intentAdapter(ctx),
         getActionError(ctx),
         keyMapperImeMessenger(ctx, keyEventRelayService),

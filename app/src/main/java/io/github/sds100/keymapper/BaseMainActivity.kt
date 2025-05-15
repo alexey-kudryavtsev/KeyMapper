@@ -51,6 +51,7 @@ import io.github.sds100.keymapper.system.files.FileUtils
 import io.github.sds100.keymapper.system.inputevents.MyMotionEvent
 import io.github.sds100.keymapper.system.permissions.AndroidPermissionAdapter
 import io.github.sds100.keymapper.system.permissions.RequestPermissionDelegate
+import io.github.sds100.keymapper.system.root.SuAdapterImpl
 import io.github.sds100.keymapper.trigger.RecordTriggerController
 import io.github.sds100.keymapper.util.launchRepeatOnLifecycle
 import io.github.sds100.keymapper.util.ui.showPopups
@@ -90,6 +91,10 @@ abstract class BaseMainActivity : AppCompatActivity() {
 
     val serviceAdapter: AccessibilityServiceAdapter by lazy {
         ServiceLocator.accessibilityServiceAdapter(this)
+    }
+
+    private val suAdapter: SuAdapterImpl by lazy {
+        ServiceLocator.suAdapter(this)
     }
 
     val viewModel by viewModels<ActivityViewModel> {
@@ -278,6 +283,7 @@ abstract class BaseMainActivity : AppCompatActivity() {
         // the activities have not necessarily resumed at that point.
         permissionAdapter.onPermissionsChanged()
         serviceAdapter.updateWhetherServiceIsEnabled()
+        suAdapter.invalidateIsRooted()
     }
 
     override fun onDestroy() {

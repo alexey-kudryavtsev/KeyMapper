@@ -59,7 +59,7 @@ class PerformActionsUseCaseTest {
             inputMethodAdapter = mock(),
             fileAdapter = mock(),
             suAdapter = mock {
-                on { isGranted }.then { MutableStateFlow(false) }
+                on { isRooted }.then { MutableStateFlow(false) }
             },
             shellAdapter = mock(),
             intentAdapter = mock(),

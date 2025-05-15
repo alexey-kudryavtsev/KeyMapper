@@ -50,7 +50,7 @@ import io.github.sds100.keymapper.system.phone.PhoneAdapter
 import io.github.sds100.keymapper.system.popup.PopupMessageAdapter
 import io.github.sds100.keymapper.system.power.PowerAdapter
 import io.github.sds100.keymapper.system.ringtones.RingtoneAdapter
-import io.github.sds100.keymapper.system.root.SuAdapter
+import io.github.sds100.keymapper.system.root.SuAdapterImpl
 import io.github.sds100.keymapper.system.url.OpenUrlAdapter
 import io.github.sds100.keymapper.system.vibrator.VibratorAdapter
 import io.github.sds100.keymapper.system.volume.VolumeAdapter
@@ -267,7 +267,7 @@ object ServiceLocator {
 
     fun audioAdapter(context: Context): VolumeAdapter = (context.applicationContext as KeyMapperApp).audioAdapter
 
-    fun suAdapter(context: Context): SuAdapter = (context.applicationContext as KeyMapperApp).suAdapter
+    fun suAdapter(context: Context): SuAdapterImpl = (context.applicationContext as KeyMapperApp).suAdapter
 
     fun intentAdapter(context: Context): IntentAdapter = (context.applicationContext as KeyMapperApp).intentAdapter
 

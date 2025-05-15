@@ -123,7 +123,7 @@ private fun Content(
             onButtonClick = onWarningButtonClick,
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         if (proModeWarningState is ProModeWarningState.Understood) {
             OptionsHeaderRow(
@@ -174,6 +174,8 @@ private fun Content(
                 textAlign = TextAlign.Center,
             )
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 

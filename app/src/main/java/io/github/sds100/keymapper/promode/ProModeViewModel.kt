@@ -71,3 +71,9 @@ sealed class ProModeWarningState {
     data object Idle : ProModeWarningState()
     data object Understood : ProModeWarningState()
 }
+
+data class ProModeSetupState(
+    val isRootDetected: Boolean,
+    val isShizukuDetected: Boolean,
+
+)
