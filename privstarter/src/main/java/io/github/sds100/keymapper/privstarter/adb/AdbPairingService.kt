@@ -18,7 +18,7 @@ import android.preference.PreferenceManager
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import io.github.sds100.keymapper.nativelib.R
+import io.github.sds100.keymapper.privstarter.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

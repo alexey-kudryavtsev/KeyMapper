@@ -1,11 +1,10 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-//    id("dev.rikka.tools.refine")
 }
 
 android {
-    namespace = "io.github.sds100.keymapper.nativelib"
+    namespace = "io.github.sds100.keymapper.privstarter"
     compileSdk = 35
 
     defaultConfig {
@@ -28,13 +27,13 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
+                "proguard-rules.pro"
             )
         }
     }
 
     buildFeatures {
-        aidl = true
+        prefab = true
     }
 
     externalNativeBuild {
@@ -64,20 +63,16 @@ android {
 }
 
 dependencies {
-    compileOnly(project(":systemstubs"))
+
     implementation("org.conscrypt:conscrypt-android:2.5.3")
     implementation("androidx.core:core-ktx:1.16.0")
+    implementation("androidx.appcompat:appcompat:1.7.0")
 
     // From Shizuku :manager module build.gradle file.
+    implementation("io.github.vvb2060.ndk:boringssl:20250114")
+    implementation("dev.rikka.ndk.thirdparty:cxx:1.2.0")
     implementation("org.lsposed.hiddenapibypass:hiddenapibypass:4.3")
     implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
     implementation("me.zhanghai.android.appiconloader:appiconloader:1.5.0")
     implementation("dev.rikka.rikkax.core:core-ktx:1.4.1")
-//    implementation("dev.rikka.hidden:compat:4.3.3")
-//    compileOnly("dev.rikka.hidden:stub:4.3.3")
-//
-//    implementation("dev.rikka.tools.refine:runtime:4.3.0")
-//    annotationProcessor("dev.rikka.tools.refine:annotation-processor:4.3.0")
-//    compileOnly("dev.rikka.tools.refine:annotation:4.3.0")
-
 }

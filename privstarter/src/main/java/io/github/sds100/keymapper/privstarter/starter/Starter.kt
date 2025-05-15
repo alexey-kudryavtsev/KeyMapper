@@ -6,7 +6,7 @@ import android.os.UserManager
 import android.system.ErrnoException
 import android.system.Os
 import androidx.annotation.RequiresApi
-import io.github.sds100.keymapper.nativelib.R
+import io.github.sds100.keymapper.privstarter.R
 import moe.shizuku.manager.ktx.createDeviceProtectedStorageContextCompat
 import moe.shizuku.manager.ktx.logd
 import moe.shizuku.manager.ktx.loge

@@ -246,7 +246,7 @@ abstract class BaseMainActivity : AppCompatActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 //            startPairingService()
-//            startAdb("127.0.0.1", 35051)
+            startAdb("127.0.0.1", 33697)
         }
 
 //        val userServiceArgs =

@@ -163,6 +163,7 @@ android {
 dependencies {
     implementation fileTree(include: ["*.jar"], dir: "libs")
     implementation project(':nativelib')
+    implementation project(':privstarter')
 
     compileOnly project(":systemstubs")
 
