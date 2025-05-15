@@ -44,17 +44,9 @@ class SuAdapterImpl(
 
         try {
             if (block) {
-                // Don't use the long running su process because that will block the thread indefinitely
-                SimpleShell.run("su", "-c", command, waitFor = true)
+                Shell.cmd(command).exec()
             } else {
-                if (process == null) {
-                    process = ProcessBuilder("su").start()
-                }
-
-                with(process!!.outputStream.bufferedWriter()) {
-                    write("$command\n")
-                    flush()
-                }
+                Shell.cmd(command).submit()
             }
 
             return Success(Unit)
@@ -77,6 +69,7 @@ class SuAdapterImpl(
     }
 
     fun invalidateIsRooted() {
+        Shell.getShell()
         isRooted.update { Shell.isAppGrantedRoot() ?: false }
     }
 }
