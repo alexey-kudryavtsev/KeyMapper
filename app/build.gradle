@@ -89,7 +89,13 @@ android {
         }
     }
 
-
+    flavorDimensions = ["pro"]
+    productFlavors {
+        free {
+            dimension "pro"
+        }
+    }
+    
     buildFeatures {
         dataBinding true
         viewBinding true
