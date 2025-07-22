@@ -89,26 +89,6 @@ android {
         }
     }
 
-    flavorDimensions = ["pro"]
-    productFlavors {
-        free {
-            dimension "pro"
-        }
-        pro {
-            dimension "pro"
-
-            File file = rootProject.file("local.properties")
-            String keyName = "REVENUECAT_API_KEY"
-
-            if (file.exists()) {
-                def localProperties = new Properties()
-                localProperties.load(new FileInputStream(file))
-                if (localProperties.containsKey(keyName)) {
-                    buildConfigField("String", keyName, localProperties[keyName])
-                }
-            }
-        }
-    }
 
     buildFeatures {
         dataBinding true
@@ -192,8 +172,7 @@ dependencies {
     implementation "dev.rikka.shizuku:api:$shizuku_version"
     implementation "dev.rikka.shizuku:provider:$shizuku_version"
     implementation "org.lsposed.hiddenapibypass:hiddenapibypass:4.3"
-    proImplementation 'com.revenuecat.purchases:purchases:8.17.0'
-    proImplementation "com.airbnb.android:lottie-compose:6.6.3"
+    implementation "com.airbnb.android:lottie-compose:6.6.3"
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
