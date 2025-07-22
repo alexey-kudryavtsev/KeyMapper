@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'develop'
+      - 'master'
 
 concurrency:
   group: ${{ github.workflow }}
@@ -121,18 +122,3 @@ jobs:
         with:
           name: ${{ env.APK_NAME }}
           path: app/build/outputs/apk/free/ci/${{ env.APK_NAME }}.apk
-
-      - name: Upload to Discord
-        uses: sinshutu/upload-to-discord@v2.0.0
-        if: github.event.repository.fork == false
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        with:
-          args: app/build/outputs/apk/free/ci/${{ env.APK_NAME }}.apk
-
-      - name: Report build status to Discord
-        uses: sarisia/actions-status-discord@v1
-        if: github.event.repository.fork == false && failure()
-        with:
-          title: "Build apk"
-          webhook: ${{ secrets.DISCORD_BUILD_STATUS_WEBHOOK }}
